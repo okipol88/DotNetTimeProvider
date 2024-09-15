@@ -1,17 +1,18 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DotNetTimeProvider;
 
 public class DataCollector<T>
 {
-    private Timer _timer;
+    private ITimer _timer;
 
     private ConcurrentStack<T> _items = new();
 
-    public DataCollector()
+    public DataCollector(TimeProvider timerProvider)
     {
-        _timer = new Timer(OnTimerTick);
+        _timer = timerProvider.CreateTimer(OnTimerTick, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
     }
 
     public Action<IList<T>>? DataCollected { get; set; }

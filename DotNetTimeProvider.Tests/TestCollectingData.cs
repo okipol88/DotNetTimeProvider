@@ -1,18 +1,20 @@
+using Microsoft.Extensions.Time.Testing;
+
 namespace DotNetTimeProvider.Tests;
 
 [TestClass]
 public class TestCollectingData
 {
     [TestMethod]
-    public async Task OneObjectCollectedInFirstAndSecondInterval_TriggersTwoCallbacksWithTwoOneElementLists()
+    public void OneObjectCollectedInFirstAndSecondInterval_TriggersTwoCallbacksWithTwoOneElementLists()
     {
         // Arrange
         var firstItem = 42;
         var secondItem = 43;
-        var timeSpan = TimeSpan.FromSeconds(1);
-        var timeSpanSafetyDelta = TimeSpan.FromMilliseconds(100);
+        var timeSpan = TimeSpan.FromMicroseconds(1);
+        var fakeTimeProvider = new FakeTimeProvider();
 
-        var dataCollector = new DataCollector<int>();
+        var dataCollector = new DataCollector<int>(fakeTimeProvider);
         var cancellationTokenSource = new CancellationTokenSource();
         var itemCollections = new Queue<IList<int>>();
         dataCollector.DataCollected += itemCollections.Enqueue;
@@ -21,10 +23,10 @@ public class TestCollectingData
         dataCollector.StartCollecting(timeSpan, cancellationTokenSource.Token);
 
         dataCollector.Collectdata(firstItem);
-        await Task.Delay(timeSpan + timeSpanSafetyDelta);
+        fakeTimeProvider.Advance(timeSpan);
 
         dataCollector.Collectdata(secondItem);
-        await Task.Delay(timeSpan + timeSpanSafetyDelta);
+        fakeTimeProvider.Advance(timeSpan);
 
         cancellationTokenSource.Cancel();
 
